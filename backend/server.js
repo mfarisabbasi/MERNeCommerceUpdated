@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import cors from "cors";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import connectDB from "./config/db.js";
@@ -20,6 +21,8 @@ if (process.env.NODE_ENV === "development") {
 }
 
 app.use(express.json());
+
+app.use(cors());
 
 app.get("/", (req, res) => {
   res.send("API is running....");

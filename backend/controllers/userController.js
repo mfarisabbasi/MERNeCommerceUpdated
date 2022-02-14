@@ -1,11 +1,16 @@
 import asyncHandler from "express-async-handler";
 import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
 import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
 import {
   sendWelcomeEmail,
   sendResetPasswordEmail,
 } from "../utils/emailSystem.js";
+
+const client = new OAuth2Client(
+  "1085866666703-1903vd6vuhr4tftd6nltucqru0j43q2l.apps.googleusercontent.com"
+);
 
 // @desc Auth user & get token
 // @route POST /api/users/login
@@ -26,6 +31,60 @@ const authUser = asyncHandler(async (req, res) => {
     res.status(401);
     throw new Error("Invalid email or password");
   }
+});
+
+const googleLogin = asyncHandler(async (req, res) => {
+  const { token } = await req.body;
+
+  client
+    .verifyIdToken({
+      idToken: token,
+      audience:
+        "1085866666703-1903vd6vuhr4tftd6nltucqru0j43q2l.apps.googleusercontent.com",
+    })
+    .then((response) => {
+      const { email_verified, email, name } = response.payload;
+
+      if (email_verified) {
+        User.findOne({ email }, (err, user) => {
+          if (err) {
+            res.status(400).json({
+              error: err,
+            });
+          }
+          if (!user) {
+            let password = email + process.env.JWT_SECRET;
+            let newUser = new User({ name, email, password });
+            newUser.save((err, createdUser) => {
+              if (err) {
+                res.status(400).json({
+                  error: err,
+                });
+              }
+              res.json({
+                _id: createdUser.id,
+                name: createdUser.name,
+                email: createdUser.email,
+                isAdmin: createdUser.isAdmin,
+                token: generateToken(createdUser._id),
+              });
+            });
+          } else {
+            res.json({
+              _id: user.id,
+              name: user.name,
+              email: user.email,
+              isAdmin: user.isAdmin,
+              token: generateToken(user._id),
+            });
+          }
+        });
+      } else {
+        res.status(401);
+        throw new Error("Error");
+      }
+    })
+    .catch((err) => res.json({ err: `${err.message}` }));
 });
 
 // @desc Register a new user
@@ -202,7 +261,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     expireToken: { $gt: Date.now() },
   });
   if (!userBasedOnToken) return res.json({ error: "Token expired" });
-  userBasedOnToken.password = req.body.password;
+  userBasedOnToken.password = newPassword;
   userBasedOnToken.resetToken = undefined;
   userBasedOnToken.expireToken = undefined;
   await userBasedOnToken.save();
@@ -223,4 +282,5 @@ export {
   updateUser,
   resetPasswordEmail,
   resetPassword,
+  googleLogin,
 };

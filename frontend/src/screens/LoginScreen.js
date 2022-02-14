@@ -5,7 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 import Message from "../components/Message";
 import Loader from "../components/Loader";
 import FormContainer from "../components/FormContainer";
-import { login } from "../actions/userActions";
+import { login, googleLogin } from "../actions/userActions";
+import { GoogleLogin } from "react-google-login";
+import axios from "axios";
 
 const LoginScreen = ({ location, history }) => {
   const [email, setEmail] = useState("");
@@ -29,6 +31,20 @@ const LoginScreen = ({ location, history }) => {
     dispatch(login(email, password));
   };
 
+  const responseSuccess = (res) => {
+    dispatch(googleLogin(res.tokenId));
+    // axios({
+    //   method: "POST",
+    //   url: "http://localhost:5000/api/users/login/google",
+    //   data: { tokenId: res.tokenId },
+    // }).then((response) => {
+    //   console.log(response);
+    //   localStorage.setItem("userInfo", JSON.stringify(response.data));
+    // });
+  };
+  const responseFailure = (res) => {
+    console.log(res);
+  };
   return (
     <FormContainer>
       <h1>Sign In</h1>
@@ -44,7 +60,6 @@ const LoginScreen = ({ location, history }) => {
             onChange={(e) => setEmail(e.target.value)}
           ></Form.Control>
         </Form.Group>
-
         <Form.Group controlId="password">
           <Form.Label>Password</Form.Label>
           <Form.Control
@@ -54,10 +69,17 @@ const LoginScreen = ({ location, history }) => {
             onChange={(e) => setPassword(e.target.value)}
           ></Form.Control>
         </Form.Group>
-
         <Button type="submit" variant="primary">
           Sign In
         </Button>
+        OR
+        <GoogleLogin
+          clientId="1085866666703-1903vd6vuhr4tftd6nltucqru0j43q2l.apps.googleusercontent.com"
+          buttonText="Signin With Google"
+          onSuccess={responseSuccess}
+          onFailure={responseFailure}
+          cookiePolicy={"single_host_origin"}
+        />
       </Form>
       <Row className="py-3">
         <Col>
