@@ -26,7 +26,6 @@ import {
   GOOGLE_LOGIN_FAIL,
   GOOGLE_LOGIN_REQUEST,
   GOOGLE_LOGIN_SUCCESS,
-  GOOGLE_LOGOUT,
 } from "../constants/userConstants";
 import axios from "axios";
 import { ORDER_LIST_MY_RESET } from "../constants/orderConstants";

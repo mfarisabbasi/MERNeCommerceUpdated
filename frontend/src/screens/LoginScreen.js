@@ -33,6 +33,9 @@ const LoginScreen = ({ location, history }) => {
 
   const responseSuccess = (res) => {
     dispatch(googleLogin(res.tokenId));
+    setTimeout(() => {
+      window.location.reload();
+    }, 3000);
     // axios({
     //   method: "POST",
     //   url: "http://localhost:5000/api/users/login/google",
